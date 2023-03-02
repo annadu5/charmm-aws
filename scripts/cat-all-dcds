@@ -1,0 +1,19 @@
+# concatenate step5_nn.dcd files
+# Assume in charmm_openmm/
+LAST=${1:-1000}    # Specify last cnt or through 1000
+
+STEPX=$(ls step*_equilibration.inp 2>/dev/null | awk -F_ '{print $1}')
+DCDFILES=
+for cnt in `seq $LAST`; do
+  StepDcd=${STEPX}_${cnt}.dcd
+  if [ -f $StepDcd ] ; then
+    DOCFILES="$DOCFILES $StepDcd"
+    lastN=$cnt
+  fi
+done
+
+OutFile=all-dcd-$lastN.dc
+[ -f $OutFile ] && rm $OutFile
+catdcd -o $OutFile -otype dcd $DOCFILES
+echo $DOCFILES
+ls -l $OutFile

@@ -1,0 +1,32 @@
+# guess which sim?
+# follow this order: .:charmm_openmm/:~/.current_simulation
+which_sim() {
+    local sim=$1
+    if [ x"$sim" != x]; then
+        simdir=$HOME/$sim
+        if [ -d $simdir ] && [ -d $simdir/charmm_openmm ]; then
+            echo $sim
+        else
+            >&2 echo "$sim not valid"
+        fi
+    elif [ -d charmm_openmm ]; then
+        basename $PWD
+    elif [ $(basename $PWD) = "charmm_openmm" ]; then
+        cd .. ; basename $PWD; cd charmm_openmm
+    elif [ -f $HOME/.current_simulation ]; then
+        cat $HOME/.current_simulation
+    fi
+}
+
+summary() {
+  local ofile=$1
+  [ x"$ofile" = x ] || [ ! -f $ofile ] && echo "No valid out file $ofile" >&2 && return 1
+  if grep "NORMAL TERMINATION BY NORMAL STOP" $ofile >/dev/null ; then
+    tail -n7 $ofile
+  elif grep "ABNORMAL TERMINATION" $ofile >/dev/null ; then
+    grep -B4 TERMINATING $ofile
+    tail -n7 $ofile
+  fi
+}
+
+summary $1

@@ -1,0 +1,21 @@
+Host=$1
+SimResult=$2
+
+[ x"$Host" = x ] && echo "Usage: $0 <Host> <sim>" >&2 && exit 1
+
+if [ x"$SimResult" = x ]; then
+  SimResult=$(ssh $Host DRYRUN=Name bash bin/tar-sim.sh)
+  SimResultPath=$(ssh $Host ls $SimResult 2>/dev/null)
+  if [ x"$SimResultPath" = x ]; then
+    ssh $Host bash bin/tar-sim.sh
+  fi
+fi
+
+# Pull from $Host and untar
+scp $Host:$SimResult .
+tar xfz $SimResult
+
+# catdcd
+SIM=${SimResult/_result*/}
+cd $SIM/charmm_openmm
+cat-all-dcds

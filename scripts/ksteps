@@ -1,0 +1,30 @@
+
+
+_ksteps ()
+{
+    grep --color=auto "DYNAMC> Averages for the last 1000 steps" $1 | wc -l
+}
+
+summary() {
+  local ofile=$1
+  if grep "NORMAL TERMINATION BY NORMAL STOP" $ofile >/dev/null ; then
+    tail -n7 $ofile
+  elif grep "ABNORMAL TERMINATION" $ofile >/dev/null ; then
+    grep -B4 TERMINATING $ofile
+    tail -n7 $ofile
+  fi
+}
+
+if [ x"$1" = x ] ; then
+  FILES=$(ls *.inp*.out 2>/dev/null)
+  if [ x"$FILES" = x ] && [ -f $HOME/.current_simulation ] ; then
+    FILES=$(ls $HOME/$(cat $HOME/.current_simulation)/charmm_openmm/*.inp*.out)
+  fi
+else
+  FILES=$@
+fi
+
+for f in $FILES; do
+  steps=`_ksteps $f`
+  echo "$f: ${steps}k steps"
+done
